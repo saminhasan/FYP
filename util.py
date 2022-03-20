@@ -62,7 +62,7 @@ def cost_func(path):
 
 	energy_consumption = calc_energy_consumption(path)
 	energy_weight = 2.0
-	energy_cost = 0#energy_consumption * energy_weight
+	energy_cost = energy_consumption * energy_weight
 	
 	#print(length_cost, time_cost, energy_cost)
 	cost = length_cost + time_cost + energy_cost
@@ -71,20 +71,49 @@ def cost_func(path):
 	return cost
 	
 def optimize_path(path):
-	result = minimize(cost_func, path, method="SLSQP")
+	bnds = []
+	lb= []
+	ub = []
+	z = 1.0
+	for i in range(0, len(path)):
+		if i == 0 or i == len(path) - 1:
+			lim_r = 0
+		else:
+			lim_r = z
+		xlb = path[i][0] - lim_r
+		xub = path[i][0] + lim_r
+		ylb = path[i][1] - lim_r
+		yub = path[i][1] + lim_r
+		zlb = path[i][1] - lim_r
+		zub = path[i][1] + lim_r
+		bx = [xlb, xub]
+		by = [ylb, yub]
+		bz = [zlb, zub]
+		bnds.append([bx,by,bz])
+	bnds = np.asarray(bnds)
+	bnds = bnds.reshape(len(path)*3, 2)
+	#print(bnds.shape)
+	nm = "Nelder-Mead"
+	pw = "Powell"
+	lb = "L-BFGS-B"
+	tnc = "TNC"
+	tr="trust-constr" 
+	sl = "SLSQP"
+	result = minimize(cost_func, path, method=lb, bounds=bnds)
 	#result = brute(cost_func, path)
-	#print(result.x)
+	print(result)
 	return result.x
 
-step_size = 0.2 # in meters
-start = np.array([0,0,0])
-finish = np.array([5,5,5])
+step_size = 2.0 # in meters
+start = np.array([-2,3,0])
+finish = np.array([3,3,10])
 linear_distance = np.linalg.norm(finish-start)
 num_steps = linear_distance //  step_size + 1
 initial_path = np.linspace(start, finish, num=int(num_steps), endpoint= True)
 
 #c = cost_func(initial_path)
 #print(c)
+'''
 initial_path = np.array(
 [[ 1.12921675e+00,  1.25984616e+00,  1.99792697e-13],
  [ 1.04546265e+00,  1.09112034e+00,  1.16279070e-01],
@@ -131,10 +160,11 @@ initial_path = np.array(
  [-2.32035834e+00,  5.36113477e+00,  4.88372093e+00],
  [-2.13236309e+00,  4.54880160e+00,  5.00000000e+00]]
 )
+'''
 path = initial_path
 path = optimize_path(initial_path)
 path = path.reshape((int(path.shape[0]//3), 3))
-print(path)
+#print(path)
 fig = plt.figure('3D plots')
 ax = plt.axes(projection='3d')
 ax.set_xlabel('X Label')
