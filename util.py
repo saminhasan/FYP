@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import *
 from matplotlib import cm
-
+from drone_sim import energy_from_waypoints
 
 def calc_length(curve):
 
@@ -17,29 +17,15 @@ def calc_time(path):
 	time = calc_length(path) / vel
 	return time
 	
-def rosenbrock(X):
-	X = X.reshape((int(X.shape[0]//3), 3))
-
-	"""
-	This R^2 -> R^1 function should be compatible with algopy.
-	http://en.wikipedia.org/wiki/Rosenbrock_function
-	A generalized implementation is available
-	as the scipy.optimize.rosen function
-	"""
-	x = X[:,0]
-	y = X[:,1]
-	a = 1. - x
-	b = y - x*x
-	c = X[:,2]
-	return np.sum(a*a + b*b*100.)
 
 
 	
 def calc_energy_consumption(path):
-	# for now place holder for environment
+	path = path.reshape((int(path.shape[0]//3), 3))
+	energy = energy_from_waypoints(path)
 	
 	
-	return 0 #rosenbrock(path)
+	return energy
 	
 
 	
@@ -50,8 +36,8 @@ def cost_func(path):
 	length_weight = 1.0
 	length_cost = length * length_weight
 
-	
-	time = calc_time(path)
+	vel = 10 
+	time = length/ vel 
 	time_weight = 1.0
 	time_cost = time * time_weight
 	
@@ -132,11 +118,11 @@ def main():
 	
 	'''
 
-	step_size = 1.0 # in meters
+	step_size = 0.5 # in meters
 	# starting co-ordinate 
-	start = np.array([-2,3,0]) 
+	start = np.array([0,0,0]) 
 	# Finishing co-ordinate 
-	finish = np.array([3,3,10])
+	finish = np.array([0,0,20])
 	# shorttest path distance,  straight line path
 	linear_distance = np.linalg.norm(finish-start)
 	#calculate number of steps to divide path into
@@ -144,9 +130,9 @@ def main():
 
 	# The guess path for the optimizer to start workinig with, a straight line connecting start and finish line
 	initial_path = np.linspace(start, finish, num=int(num_steps), endpoint= True)
-
-	initial_path += initial_path + np.random.randn(*initial_path.shape) * 0.1
-	
+	noise = np.random.randn(*initial_path.shape) * 0.2
+	initial_path +=  noise
+	#print(initial_path, noise)
 	path = optimize_path(initial_path)
 	#reshapinig  output array  for plotttinig
 	#print(path, path.shape)
