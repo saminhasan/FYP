@@ -1,10 +1,44 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.optimize import *
-from matplotlib import cm
-from sim import energy_from_waypoints
-import pyximport; pyximport.install()
 
+#new
+from __future__ import print_function
+
+from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
+import time
+import math
+from pymavlink import mavutil
+import argparse	 
+'''new'''
+parser = argparse.ArgumentParser(description='Demonstrates basic mission operations.')
+parser.add_argument('--connect', 
+				   help="vehicle connection target string. If not specified, SITL automatically started and used.")
+args = parser.parse_args()
+
+connection_string = args.connect
+sitl = None
+
+
+#Start SITL if no connection string specified
+if not connection_string:
+	import dronekit_sitl
+	sitl = dronekit_sitl.start_default()
+	connection_string = sitl.connection_string()
+
+
+# Connect to the Vehicle
+print('Connecting to vehicle on: %s' % connection_string)
+vehicle = connect(connection_string, wait_ready=True)
+#new
+
+import numpy as np
+import navpy as nv
+from matplotlib import cm
+from scipy.optimize import *
+from sim import energy_from_waypoints
+import matplotlib.pyplot as plt
+
+#import pyximport; pyximport.install()
+
+lat_ref,  lon_ref, alt_ref = 23.862054, 90.361757, 0.0
 np.random.seed(0)
 obstacles = [[2,2,3,0.5], [4,5,6,1]] #x, y, z, r
 fig = plt.figure('3D plots')
@@ -17,7 +51,6 @@ ax.set_title('3D plot Title')
 		
 def calc_length(curve):
 
-	curve = curve.reshape(int(curve.shape[0]//3), 3)
 	length = np.sum(np.sqrt(np.sum((curve[:-1] - curve[1:])**2,axis=1))) #  https://stackoverflow.com/questions/63986448/finding-arc-length-in-a-curve-created-by-numpy-array
 	return length
 	
@@ -33,14 +66,13 @@ def calc_time(path):
 	
 def calc_energy_consumption(path):
 	
-	path = path.reshape((int(path.shape[0]//3), 3))
+	#path = path.reshape((int(path.shape[0]//3), 3))
 	#energy = energy_from_waypoints(path)
 	
 	
 	return 0#energy
 	
 def calc_collision(path, obstacles):
-	path = path.reshape((int(path.shape[0]//3), 3))
 
 	collision_cost = 100
 	total_cost = 0
@@ -69,7 +101,8 @@ def calc_collision(path, obstacles):
 	return total_cost
 	
 def cost_func(path):
-	
+	path = path.reshape((int(path.shape[0]//3), 3))
+
 	length = calc_length(path)
 	length_weight = 1.0
 	length_cost = length * length_weight
@@ -106,12 +139,12 @@ def optimize_path(path):
 	tnc = "TNC" # 
 	tr="trust-constr" 
 	sl = "SLSQP"
-	result = minimize(cost_func, path, method=nm, bounds=bnds ,options={'maxiter':len(path) * 3333 * 2 , 'adaptive': True, 'disp': True })
+	result = minimize(cost_func, path, method=nm, bounds=bnds ,options={'maxiter':len(path) * 333 , 'adaptive': True, 'disp': True })
 	#result = minimize(fun, x0, args=(), method='Nelder-Mead', bounds=None, tol=None, callback=None, options={'func': None, 'maxiter': None, 'maxfev': None, 'disp': False, 'return_all': False, 'initial_simplex': None, 'xatol': 0.0001, 'fatol': 0.0001, 'adaptive': False})
 	
 	#result = minimize(cost_func, path, method=sl)
 	#result = brute(cost_func, path)
-	print(result.success)
+	print("optimization : ", result.success)
 	return result.x
 
 
@@ -161,6 +194,57 @@ def plot_obstacles(obstacles):
 
 		# Plot the surface
 		ax.plot_surface(x, y, z, color='b', alpha=0.1)
+		
+		
+'''new'''
+
+def download_mission():
+	"""
+	Downloads the current mission and returns it in a list.
+	It is used in save_mission() to get the file information to save.
+	"""
+	print(" Download mission from vehicle")
+	missionlist=[]
+	cmds = vehicle.commands
+	cmds.download()
+	cmds.wait_ready()
+	for cmd in cmds:
+		missionlist.append(cmd)
+		print(cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
+	return missionlist
+
+def save_mission(aFileName):
+	"""
+	Save a mission in the Waypoint file format 
+	(http://qgroundcontrol.org/mavlink/waypoint_protocol#waypoint_file_format).
+	"""
+	print("\nSave mission from Vehicle to file: %s" % aFileName)	
+	#Download mission from vehicle
+	missionlist = download_mission()
+	#Add file-format information
+	output='QGC WPL 110\n'
+	#Add home location as 0th waypoint
+	home = vehicle.home_location
+	output+="%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (0,1,0,16,0,0,0,0,lat_ref,lon_ref,alt_ref,1)
+	#Add commands
+	for cmd in missionlist:
+		commandline="%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue)
+		output+=commandline
+	with open(aFileName, 'w') as file_:
+		print(" Write mission to file")
+		file_.write(output)
+		
+		
+def printfile(aFileName):
+	"""
+	Print a mission file to demonstrate "round trip"
+	"""
+	print("\nMission file: %s" % aFileName)
+	with open(aFileName) as f:
+		for line in f:
+			print(' %s' % line.strip())	
+'''new'''
+
 def main():
 	'''
 	genarate a straight line path as initial solution.
@@ -173,7 +257,7 @@ def main():
 	# starting co-ordinate 
 	start = np.array([0,0,0]) 
 	# Finishing co-ordinate 
-	finish = np.array([5,5,5])
+	finish = np.array([5,5,20])
 	# shorttest path distance,  straight line path
 	linear_distance = np.linalg.norm(finish-start)
 	#calculate number of steps to divide path into
@@ -181,9 +265,10 @@ def main():
 
 	# The guess path for the optimizer to start workinig with, a straight line connecting start and finish line
 	initial_path = np.linspace(start, finish, num=int(num_steps), endpoint= True)
-	noise = np.random.randn(*initial_path.shape) * 0.5
+	noise = np.random.randn(*initial_path.shape) * 1.0
 	initial_path +=  noise
 	#print(initial_path, noise)
+	print("collision : ", bool(calc_collision(initial_path, obstacles)))
 	path = optimize_path(initial_path)
 	#reshapinig  output array  for plotttinig
 	#print(path, path.shape)
@@ -193,15 +278,44 @@ def main():
 	#print(path)
 
 	# plotting 
-	
+	print("collision : ", bool(calc_collision(path, obstacles)))
+
 	plot(initial_path, path)
-	
-	
+	lla = np.asarray(nv.ned2lla(path, lat_ref, lon_ref, alt_ref, latlon_unit='deg', alt_unit='m', model='wgs84'))
+	lla = lla.T#reshape((lla.shape[1],lla.shape[0]))
+	#print(lla, lla.shape)
 	# cost of stragith line path
 
 	#print(linear_distance, c)
 	#print(path,"\n","\n",len(path),"\n",np.diff(path,axis=0))
-	
+			
+	cmds = vehicle.commands
+	print(" Clear any existing commands")
+	cmds.clear() 
+	print(" Cleared any existing commands")
+	time.sleep(5)
+	cmds.clear()
+	print(" Adding new commands.")
+	cmd = Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 5)
+	print((cmd.seq,cmd.current,cmd.frame,cmd.command,cmd.param1,cmd.param2,cmd.param3,cmd.param4,cmd.x,cmd.y,cmd.z,cmd.autocontinue))
+	cmds.add(cmd)
+	cmds.add(cmd)
+	for i in range(len(lla)):
+		cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 1, 0, 0, 0, 0, 0, float(lla[i][0]), float(lla[i][1]), float(lla[i][2])))
+	cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_LAND, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+	cmds.upload()
+	time.sleep(5)
+	save_mission('src.txt')
+	print(" saved new waypoints.")
+
+	#Close vehicle object before exiting script
+	print("Close vehicle object")
+	vehicle.close()
+
+	# Shut down simulator if it was started.
+	if sitl is not None:
+		sitl.stop()
+	'''new'''
 if __name__ == "__main__":
 	for _ in range(1):
 		main()
