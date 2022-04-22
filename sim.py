@@ -195,7 +195,7 @@ def quad_sim(x_c, y_c, z_c, wp): # this looks like the outpuyt of the trajectory
 		irun += 1
 		if irun >= n_run:
 			break
-	print(len(ttt))
+	#print(len(ttt))
 	energy_consumptioin =  integrate.cumtrapz(ppp, ttt, initial=0)[-1]
 
 	return energy_consumptioin

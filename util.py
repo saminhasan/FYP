@@ -38,11 +38,12 @@ import matplotlib.pyplot as plt
 
 #import pyximport; pyximport.install()
 
-lat_ref,  lon_ref, alt_ref = 23.862054, 90.361757, 0.0
+lat_ref,  lon_ref, alt_ref = 23.8620809, 90.3611941, 0.0
 np.random.seed(0)
-obstacles = [[2,2,3,0.5], [4,5,6,1]] #x, y, z, r
+obstacles = [[0,25,25,0.5]] #x, y, z, r
 fig = plt.figure('3D plots')
 ax = plt.axes(projection='3d')
+plt.axis('equal')
 ax.set_xlabel('X Axis')
 ax.set_ylabel('Y Axis')
 ax.set_zlabel('Z Axis')
@@ -74,7 +75,7 @@ def calc_energy_consumption(path):
 	
 def calc_collision(path, obstacles):
 
-	collision_cost = 100
+	collision_cost = 500
 	total_cost = 0
 	for i in range(len(path) -1):
 		for j in range(len(obstacles)):
@@ -139,7 +140,7 @@ def optimize_path(path):
 	tnc = "TNC" # 
 	tr="trust-constr" 
 	sl = "SLSQP"
-	result = minimize(cost_func, path, method=nm, bounds=bnds ,options={'maxiter':len(path) * 333 , 'adaptive': True, 'disp': True })
+	result = minimize(cost_func, path, method=nm, bounds=bnds ,options={'maxiter':len(path) * 900 , 'adaptive': True, 'disp': True })
 	#result = minimize(fun, x0, args=(), method='Nelder-Mead', bounds=None, tol=None, callback=None, options={'func': None, 'maxiter': None, 'maxfev': None, 'disp': False, 'return_all': False, 'initial_simplex': None, 'xatol': 0.0001, 'fatol': 0.0001, 'adaptive': False})
 	
 	#result = minimize(cost_func, path, method=sl)
@@ -253,11 +254,11 @@ def main():
 	
 	'''
 
-	step_size = 1.0 # in meters
+	step_size = 4.0 # in meters
 	# starting co-ordinate 
 	start = np.array([0,0,0]) 
 	# Finishing co-ordinate 
-	finish = np.array([5,5,20])
+	finish = np.array([0,50,50])
 	# shorttest path distance,  straight line path
 	linear_distance = np.linalg.norm(finish-start)
 	#calculate number of steps to divide path into
@@ -266,10 +267,12 @@ def main():
 	# The guess path for the optimizer to start workinig with, a straight line connecting start and finish line
 	initial_path = np.linspace(start, finish, num=int(num_steps), endpoint= True)
 	noise = np.random.randn(*initial_path.shape) * 1.0
+	base_path =  initial_path + noise * 0.05
 	initial_path +=  noise
+
 	#print(initial_path, noise)
 	print("collision : ", bool(calc_collision(initial_path, obstacles)))
-	path = optimize_path(initial_path)
+	path = optimize_path(base_path)
 	#reshapinig  output array  for plotttinig
 	#print(path, path.shape)
 	c = cost_func(path)
@@ -301,7 +304,7 @@ def main():
 	cmds.add(cmd)
 	cmds.add(cmd)
 	for i in range(len(lla)):
-		cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 1, 0, 0, 0, 0, 0, float(lla[i][0]), float(lla[i][1]), float(lla[i][2])))
+		cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 1, 0, 0, 0, 0, 0, float(lla[i][0]), float(lla[i][1]), -float(lla[i][2])))
 	cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_LAND, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 	cmds.upload()
 	time.sleep(5)
