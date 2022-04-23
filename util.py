@@ -40,15 +40,16 @@ import matplotlib.pyplot as plt
 
 lat_ref,  lon_ref, alt_ref = 23.8620809, 90.3611941, 0.0
 np.random.seed(0)
-obstacles = [[0,25,25,0.5]] #x, y, z, r
+obstacles = [[0.6,25,25,0.5]] #x, y, z, r
 fig = plt.figure('3D plots')
 ax = plt.axes(projection='3d')
-plt.axis('equal')
 ax.set_xlabel('X Axis')
 ax.set_ylabel('Y Axis')
 ax.set_zlabel('Z Axis')
-ax.set_title('3D plot Title')
-
+ax.set_title('Flight Path')
+ax.set_xlim(-30, 30)
+ax.set_ylim(0, 60)
+ax.set_zlim(0, 60)
 		
 def calc_length(curve):
 
@@ -194,7 +195,7 @@ def plot_obstacles(obstacles):
 		z = r * np.outer(np.ones(np.size(u)), np.cos(v)) + obstacles[j][2]
 
 		# Plot the surface
-		ax.plot_surface(x, y, z, color='b', alpha=0.1)
+		ax.plot_surface(x, y, z, color='b', alpha=0.9)
 		
 		
 '''new'''
