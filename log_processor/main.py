@@ -90,7 +90,7 @@ def plot_path(x, y, z, power):
 	plt.show()
 
 if __name__ == '__main__':
-	file_name = 'flight_1.log'
+	file_name = 'test_4.log'
 	lf = LogFile(file_name)
 	data = lf.extract_data()
 	rctime = []
@@ -143,8 +143,6 @@ if __name__ == '__main__':
 	#predicted_consumption = energy_from_waypoints(path)
 	print("Energy Consumption (Pixhawk, Experimental) : ", Energy[-1], "  Joules" )
 	print("Energy Consumption (LogFile, Experimental) : ", consumption, "  Joules" )
-	#print("Energy Consumption (Model, Theoritical) : ",  predicted_consumption * 26)
-	calc_cost(path.flatten(),  obstacles, True)
 
 	plt.plot(Time, Voltage, label ='Voltage (Volt)')
 	plt.plot(Time, Current, label ='Current (Ampere)')
