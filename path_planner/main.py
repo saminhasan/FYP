@@ -7,14 +7,14 @@ def plan_path():
 
 	obstacles = np.array([[0,10, 1.0], [0,25, 1.0], [0,40, 1.0]]) # x, y, r; h = inf
 	
-	step_size = 3.75 # in meters
+	step_size = 4.0 # in meters
 	
 	start = np.array([0.0, 0.0, 6.0]) 	# starting co-ordinate 
 
 	finish = np.array([0.0,51.0,51.0])	# Finishing co-ordinate 
 	base_path, initial_path = genrate_initial_path(start, finish, step_size)
 	
-	path = optimize_path(base_path, obstacles, max_iter=20000)
+	path = optimize_path(base_path, obstacles, max_iter=19683)
 	
 	print('obstacles : ', obstacles)
 	print('Start : ', start)
