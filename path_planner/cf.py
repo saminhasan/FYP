@@ -1,7 +1,7 @@
 import numpy as np
 from quad_sim import *
 
-
+i=0 
 def calc_length(path):
 
 	#  https://stackoverflow.com/questions/63986448/finding-arc-length-in-a-curve-created-by-numpy-array
@@ -34,12 +34,13 @@ def calc_collision_cylinder(path, obstacles):
 			d2 = np.sqrt((p2[0] -p3[0])**2 + (p2[1] -p3[1])**2)
 			d3 = np.abs(np.linalg.norm(np.cross(p2-p1, p1-p3)))/np.linalg.norm(p2-p1)
 			if d1 < r:
-				total_cost += 1 / d1**2
+				total_cost += 999.0 / d1**2 
 			if d2 < r:
-				total_cost += 1 / d2**2
+				total_cost += 999.0 / d2**2 
 			if d3 < r:
-				total_cost += 1 / d3**2
-	
+				total_cost += 999.0 / d3**2  
+			#print(d1, d2, d3)
+
 	return total_cost
 
 def calc_cost(path, obstacles, verbose=False):
@@ -63,7 +64,7 @@ def calc_cost(path, obstacles, verbose=False):
 	energy_weight = 1.0
 	energy_cost = energy_consumption * energy_weight
 	if verbose:
-		print("Energy Consumption : ", calc_energy_consumption(path), "joules.")
+		print("Energy Consumption : ", calc_energy_consumption(path) * 25, "joules.")
 
 	collision = calc_collision_cylinder(path,obstacles)
 	collision_weight = 1.0

@@ -10,8 +10,8 @@ from pymavlink import mavutil
 import dronekit_sitl
 from dronekit import connect, VehicleMode, LocationGlobalRelative, LocationGlobal, Command
 
-lat_ref,  lon_ref, alt_ref = 23.8620809, 90.3611941, 0.0
-
+#lat_ref,  lon_ref, alt_ref = 23.8620809, 90.3611941, 0.0
+lat_ref,  lon_ref, alt_ref = 23.8619973139143, 90.3610950708389, 0.0
 
 
 	

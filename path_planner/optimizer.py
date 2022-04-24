@@ -2,13 +2,14 @@ from cf import*
 import numpy as np
 from scipy.optimize import *
 
-np.random.seed(0)
+#np.random.seed(0)
+i =0 
 
 def calc_bounds(path):
 	bounds = []
 	lb= []
 	ub = []
-	z = 1.0 # wiggle room
+	z = 3.0 # wiggle room
 	for i in range(0, len(path)):
 		if i == 0 or i == len(path) - 1:
 			lim_r = 0
@@ -27,11 +28,19 @@ def calc_bounds(path):
 	bounds = np.asarray(bounds)
 	bounds = bounds.reshape(len(path)*3, 2)
 	return bounds
-	
-	
+
+
+
 def optimize_path(path, obstacles, max_iter=9000):
 	bounds = calc_bounds(path)
 	nm = "Nelder-Mead" # 100
+	iter_len = len(path) * max_iter
+	print("max iter : ", iter_len)
+	def iter_counter(a):
+
+		global i 
+		i+=1
+		print("Progress : {:.2f} %".format(i*100 / iter_len), end='\r')
 	result = minimize(calc_cost, path, args=(obstacles), method=nm, bounds=bounds ,options={'maxiter':len(path) * max_iter , 'adaptive': True, 'disp': True })
 	#result = minimize(fun, x0, args=(), method='Nelder-Mead', bounds=None, tol=None, callback=None, options={'func': None, 'maxiter': None, 'maxfev': None, 'disp': False, 'return_all': False, 'initial_simplex': None, 'xatol': 0.0001, 'fatol': 0.0001, 'adaptive': False})
 	if result.success:
@@ -48,12 +57,13 @@ def genrate_initial_path(start, finish, step_size):
 
 	initial_path = np.linspace(start, finish, num=int(num_steps), endpoint= True)# The guess path for the optimizer to start workinig with, a straight line connecting start and finish line
 
-	noise = np.random.randn(*initial_path.shape) * 1.0
+	noise = np.random.randn(*initial_path.shape) * 2.0
 
 	base_path =  initial_path + noise * 0.5
 
 	initial_path +=  noise
-	
+	initial_path[0], initial_path[-1] = start, finish
+	base_path[0], base_path[-1] = start, finish
 	return base_path, initial_path
 
 if __name__ == "__main__":

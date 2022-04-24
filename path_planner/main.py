@@ -5,18 +5,21 @@ from mission_planner import *
 
 def plan_path():
 
-	obstacles = np.array([[0,25,1.0]]) # x, y, r; h = inf
-
-
-	step_size = 5.0 # in meters
+	obstacles = np.array([[0,10, 1.0], [0,25, 1.0], [0,40, 1.0]]) # x, y, r; h = inf
 	
-	start = np.array([0.0, 0.0, 5.0]) 	# starting co-ordinate 
+	step_size = 3.75 # in meters
+	
+	start = np.array([0.0, 0.0, 6.0]) 	# starting co-ordinate 
 
-	finish = np.array([0.0,50.0,50.0])	# Finishing co-ordinate 
-
+	finish = np.array([0.0,51.0,51.0])	# Finishing co-ordinate 
 	base_path, initial_path = genrate_initial_path(start, finish, step_size)
 	
-	path = optimize_path(base_path, obstacles, max_iter=1000)
+	path = optimize_path(base_path, obstacles, max_iter=20000)
+	
+	print('obstacles : ', obstacles)
+	print('Start : ', start)
+	print('Stop : ', finish)
+	print('Step Size : ', step_size)
 
 	
 	print("-----------------------------------For Initial Path-----------------------------------")
@@ -33,11 +36,13 @@ def plan_path():
 
 
 	
-	plot_path(initial_path, 'Initial path')
-	plot_path(path, 'Optimized path')
-	plot_obstacles_cylinder(obstacles)
-	show_plots()
+	#plot_path_3d([initial_path,path], ['Initial path', 'Optimized path'], obstacles)
+
+	plot_path_2d([initial_path, path], ['Initial path', 'Optimized path'], obstacles)
+	print('initial_path : ', initial_path)
+	print('path : ', path)
 	return path
+	
 if __name__ == "__main__":
 	path = plan_path()
 	genrate_mission(path)
