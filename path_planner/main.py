@@ -14,7 +14,7 @@ def plan_path():
 	base_path, initial_path = genrate_initial_path(start, finish, step_size)
 	#print(initial_path.ndim, initial_path.shape)
 	
-	path = optimize_path(base_path, obstacles, max_iter=len(base_path)//2)
+	path = optimize_path(base_path, obstacles, max_iter=len(base_path)//5)
 
 	print('obstacles : ', obstacles)
 	print('Start : ', start)

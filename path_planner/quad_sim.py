@@ -74,34 +74,32 @@ class TrajGen():
         self.z_c = linalg.solve(A, b_z)
 
 
-# Simulation parameters
+# parameters
+
+
+T = 5
+
 g = 9.81
 m = 2.6
 Ixx = 1
 Iyy = 1
 Izz = 1
-T = 5
 
-# Proportional coefficients
-kp_x = 1
-kp_y = 1
-kp_z = 1
-kp_roll = 25
-kp_pitch = 25
-kp_yaw = 25
+proportional_constant_x = 1
+proportional_constant_y = 1
+proportional_constant_z = 1
 
-# Derivative coefficients
-kd_x = 10
-kd_y = 10
-kd_z = 1
+proportional_constant_roll = 25
+proportional_constant_pitch = 25
+proportional_constant_yaw = 25
+
+derivative_constant_x = 10
+derivative_constant_y = 10
+derivative_constant_z = 1
 
 
-def quad_sim(x_c, y_c, z_c, wp):
-    """
-    Calculates the necessary thrust and torques for the quadrotor to
-    follow the trajectory described by the sets of coefficients
-    x_c, y_c, and z_c.
-    """
+def q_sim(x_c, y_c, z_c, wp):
+
     run = len(wp)
     x_pos = wp[0][1]
     y_pos = wp[0][1]
@@ -134,14 +132,14 @@ def quad_sim(x_c, y_c, z_c, wp):
             des_y_acc = calc_acc(y_c[i], t)
             des_z_acc = calc_acc(z_c[i], t)
 
-            thrust = m * (g + des_z_acc + kp_z * (des_z_pos - z_pos) + kd_z * (des_z_dot - z_dot))
+            thrust = m * (g + des_z_acc + proportional_constant_z * (des_z_pos - z_pos) + derivative_constant_z * (des_z_dot - z_dot))
             power = thrust * sqrt(x_dot ** 2 + y_dot ** 2 + z_dot ** 2)
             power = power[0]
-            roll_torque = kp_roll * (((des_x_acc * sin(des_yaw) - des_y_acc * cos(des_yaw)) / g) - roll)
+            roll_torque = proportional_constant_roll * (((des_x_acc * sin(des_yaw) - des_y_acc * cos(des_yaw)) / g) - roll)
 
-            pitch_torque = kp_pitch * (((des_x_acc * cos(des_yaw) - des_y_acc * sin(des_yaw)) / g) - pitch)
+            pitch_torque = proportional_constant_pitch * (((des_x_acc * cos(des_yaw) - des_y_acc * sin(des_yaw)) / g) - pitch)
 
-            yaw_torque = kp_yaw * (des_yaw - yaw)
+            yaw_torque = proportional_constant_yaw * (des_yaw - yaw)
 
             roll_dot += roll_torque * dt / Ixx
             pitch_dot += pitch_torque * dt / Iyy
@@ -257,15 +255,11 @@ def energy_from_waypoints(wp):
         y_coeffs[i] = traj.y_c
         z_coeffs[i] = traj.z_c
 
-    return quad_sim(x_coeffs, y_coeffs, z_coeffs, wp)
+    return q_sim(x_coeffs, y_coeffs, z_coeffs, wp)
 
 
-def main():
-    waypoints = [[0, 0, 0], [0, 0, 5], [5, 0, 5], [5, 5, 5], [0, 5, 5], [0, 0, 5]]
-    energy = energy_from_waypoints(waypoints)
-    print("Energy Consumption : ", energy, "Joules")
+
 
 
 if __name__ == "__main__":
     print(__file__)
-    main()
