@@ -37,6 +37,9 @@ def optimize_path(path, obstacles, max_iter=9000):
 	nm = "Nelder-Mead"	# 100
 	iter_len = len(path) * max_iter
 	print("max iter : ", iter_len)
+	global i
+
+	i = 0
 
 	def iter_counter(a):
 
@@ -61,13 +64,15 @@ def genrate_initial_path(start, finish, step_size):
 	initial_path = np.linspace(start, finish, num=int(num_steps),
 							   endpoint=True)  # The guess path for the optimizer to start workinig with, a straight line connecting start and finish line
 
-	noise = np.random.randn(*initial_path.shape) * 2.0
+	noise = np.random.randn(*initial_path.shape) * 3.0
 
 	base_path = initial_path + noise * 0.5
 
 	initial_path += noise
 	initial_path = smooth(initial_path)
 	base_path = smooth(base_path)
+	initial_path[0], initial_path[-1] = start, finish
+	base_path[0], base_path[-1] = start, finish
 	return base_path, initial_path
 
 
