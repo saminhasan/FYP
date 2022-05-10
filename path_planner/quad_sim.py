@@ -1,6 +1,5 @@
-from math import cos, sin, ceil
-
 from numpy import array, sqrt, matmul, linalg, empty
+from math import cos, sin, ceil
 from scipy import integrate
 
 
@@ -15,17 +14,17 @@ class TrajGen():
         self.g_y = des_pos[1]
         self.g_z = des_pos[2]
 
-        self.start_x_dot = s_dot[0]
-        self.start_y_dot = s_dot[1]
-        self.start_z_dot = s_dot[2]
+        self.s_x_dot = s_dot[0]
+        self.s_y_dot = s_dot[1]
+        self.s_z_dot = s_dot[2]
 
         self.des_x_dot = g_dot[0]
         self.des_y_dot = g_dot[1]
         self.des_z_dot = g_dot[2]
 
-        self.start_x_acc = s_acc[0]
-        self.start_y_acc = s_acc[1]
-        self.start_z_acc = s_acc[2]
+        self.s_x_acc = s_acc[0]
+        self.s_y_acc = s_acc[1]
+        self.s_z_acc = s_acc[2]
 
         self.des_x_acc = g_acc[0]
         self.des_y_acc = g_acc[1]
@@ -46,27 +45,27 @@ class TrajGen():
         b_x = array(
             [[self.s_x],
              [self.g_x],
-             [self.start_x_dot],
+             [self.s_x_dot],
              [self.des_x_dot],
-             [self.start_x_acc],
+             [self.s_x_acc],
              [self.des_x_acc]
              ])
 
         b_y = array(
             [[self.s_y],
              [self.g_y],
-             [self.start_y_dot],
+             [self.s_y_dot],
              [self.des_y_dot],
-             [self.start_y_acc],
+             [self.s_y_acc],
              [self.des_y_acc]
              ])
 
         b_z = array(
             [[self.s_z],
              [self.g_z],
-             [self.start_z_dot],
+             [self.s_z_dot],
              [self.des_z_dot],
-             [self.start_z_acc],
+             [self.s_z_acc],
              [self.des_z_acc]
              ])
 
