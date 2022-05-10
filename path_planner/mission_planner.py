@@ -47,12 +47,13 @@ def genrate_mission(path):
         # Add home location as 0th waypoint
         home = vehicle.home_location
         output += "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (
-        0, 1, 0, 16, 0, 0, 0, 0, lat_ref, lon_ref, alt_ref, 1)
+            0, 1, 0, 16, 0, 0, 0, 0, lat_ref, lon_ref, alt_ref, 1)
         # Add commands
         for cmd in missionlist:
             commandline = "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (
-            cmd.seq, cmd.current, cmd.frame, cmd.command, cmd.param1, cmd.param2, cmd.param3, cmd.param4, cmd.x, cmd.y,
-            cmd.z, cmd.autocontinue)
+                cmd.seq, cmd.current, cmd.frame, cmd.command, cmd.param1, cmd.param2, cmd.param3, cmd.param4, cmd.x,
+                cmd.y,
+                cmd.z, cmd.autocontinue)
             output += commandline
         now = datetime.now()
         dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")

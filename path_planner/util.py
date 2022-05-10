@@ -19,7 +19,6 @@ def plot_path_3d(paths, labels, obstacles):
         ax.plot(path[:, 0], path[:, 1], path[:, 2], label=label)
     for obstacle in obstacles:
         Xc, Yc, Zc = data_for_cylinder_along_z(obstacle[0], obstacle[1], obstacle[2], lim)
-        # ax.plot_surface(Xc, Yc, Zc, cmap=cm.jet, alpha=0.9, linewidth=0.9, label='Obstacles')
         surf = ax.plot_surface(Xc, Yc, Zc, alpha=0.9, linewidth=0.9)
 
     ax.legend()
